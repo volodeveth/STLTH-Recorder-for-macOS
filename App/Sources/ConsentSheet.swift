@@ -13,7 +13,7 @@ struct ConsentSheet: View {
             Text("Підтвердження згоди")
                 .font(.headline)
 
-            Text("Підтвердіть, що клієнт дав згоду на запис зустрічі.")
+            Text("Підтвердіть, що співрозмовник дав згоду на запис зустрічі.")
                 .fixedSize(horizontal: false, vertical: true)
 
             if diskLevel != .ok {

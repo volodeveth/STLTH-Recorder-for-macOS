@@ -2,7 +2,7 @@
 
 > Кроки позначені чекбоксами (`- [ ]`) — план виконується задача за задачею.
 
-**Goal:** Нативний macOS menu bar застосунок, що записує зустріч у два синхронні аудіофайли (мікрофон = радник, системний звук = клієнт) без бота в дзвінку, з production-якістю і бонус-шаром (транскрибація).
+**Goal:** Нативний macOS menu bar застосунок, що записує зустріч у два синхронні аудіофайли (мікрофон = ви, системний звук = співрозмовник) без бота в дзвінку, з production-якістю і бонус-шаром (транскрибація).
 
 **Architecture:** Global Core Audio process tap + мікрофон в одному aggregate device (один годинник → синхронність за побудовою). SwiftUI `MenuBarExtra` поверх SPM-пакета `RecorderCore` (headless, тестований). Референс робочого коду CoreAudio — AudioCap (клонується в Task 3).
 
@@ -216,7 +216,7 @@ targets:
         LSUIElement: true
         CFBundleDisplayName: STLTH Recorder for macOS
         NSMicrophoneUsageDescription: "STLTH Recorder for macOS записує ваш голос під час зустрічі."
-        NSAudioCaptureUsageDescription: "STLTH Recorder for macOS записує звук зустрічі (голос клієнта)."
+        NSAudioCaptureUsageDescription: "STLTH Recorder for macOS записує звук зустрічі (голос співрозмовника)."
     entitlements:
       path: App/STLTHRecorder.entitlements
       properties:
@@ -317,7 +317,7 @@ public struct TimelineAccountant {
 - [x] **Step 2:** Run test → PASS. Commit `feat: CAF writer`.
 - [x] **Step 3:** `AudioEngine.swift` — за патернами AudioCap: (1) створити global tap: `CATapDescription` (mixdown усіх процесів, `excludeCurrentProcess`), `AudioHardwareCreateProcessTap`; (2) створити aggregate device: default input device + tap (ключі — з AudioCap); (3) `AudioDeviceCreateIOProcIDWithBlock` на aggregate: у колбеку розкласти вхідні буфери на mic-канали і tap-канали, кожен → свій `TimelineAccountant` → `writeSilence(pad)` + `write(buffer)`; (4) `stop()`: зупинити IO, знищити aggregate і tap, повернути `RecordingResult` (тривалість — з `totalFrames / 48000`; імена пристроїв — через `kAudioObjectPropertyName` дефолтних input/output).
 - [x] **Step 4:** CLI-стенд `recorder-cli`: `record <секунд>` → створює `/tmp/rec-<ts>/`, запускає AudioEngine, чекає, стоп, друкує шляхи і тривалість.
-- [x] **Step 5 (інтеграційний тест на стенді):** грати музику в браузері + Zoom-мітинг з Windows-«клієнтом»; `./recorder-cli record 30`; перевірити: обидва файли відкриваються QuickTime, у `system.caf` чутно звук, у `mic.caf` — тиша (мікрофона нема) або BlackHole-сигнал, `length == 30 * 48000 ± 1 буфер` в обох.
+- [x] **Step 5 (інтеграційний тест на стенді):** грати музику в браузері + Zoom-мітинг з Windows-«співрозмовником»; `./recorder-cli record 30`; перевірити: обидва файли відкриваються QuickTime, у `system.caf` чутно звук, у `mic.caf` — тиша (мікрофона нема) або BlackHole-сигнал, `length == 30 * 48000 ± 1 буфер` в обох.
 - [x] **Step 6:** Commit `feat: audio engine (global tap + aggregate device)`. **GATE-2 пройдено.**
 
 ### Task 7: SessionStore + meta.json (TDD)
@@ -356,7 +356,7 @@ public struct TimelineAccountant {
 - Produces: робочий UI українською.
 
 - [x] **Step 1:** `MenuBarExtra` з динамічною іконкою: idle → `record.circle`, recording → `record.circle.fill` (червона, `.symbolRenderingMode(.multicolor)`) + **тривалість прямо в menu bar** (`MenuBarExtra` label = іконка+`Text(elapsed, format:...)`) — «не можна не помітити» з ТЗ.
-- [x] **Step 2:** Меню: `Почати запис` / `Зупинити запис (ЧЧ:ХХ:СС)`, `Останні записи ▸` (заглушка до Task 11), `Налаштування…`, `Вийти`. Клік «Почати» → `ConsentSheet` (вікно поверх): текст «Підтвердіть, що клієнт дав згоду на запис зустрічі», кнопки `Підтверджую — почати запис` / `Скасувати`; підтвердження → `controller.startTapped(consentAt: .now)`.
+- [x] **Step 2:** Меню: `Почати запис` / `Зупинити запис (ЧЧ:ХХ:СС)`, `Останні записи ▸` (заглушка до Task 11), `Налаштування…`, `Вийти`. Клік «Почати» → `ConsentSheet` (вікно поверх): текст «Підтвердіть, що співрозмовник дав згоду на запис зустрічі», кнопки `Підтверджую — почати запис` / `Скасувати`; підтвердження → `controller.startTapped(consentAt: .now)`.
 - [ ] **Step 3:** Ручний тест через VNC: старт → таймер тікає в menu bar; повторний «старт» недоступний; стоп → сесія в `~/Library/Application Support/STLTHRecorder/Sessions/`, meta валідний (`python3 -m json.tool meta.json`).
 - [ ] **Step 4:** Commit `feat: menu bar UI + consent flow (uk)`.
 
@@ -413,7 +413,7 @@ public struct TimelineAccountant {
 - [x] **Step 1:** `gen_clicks.py`: WAV 60 c, клік (1 кГц, 10 мс) кожні 5 с. `drift_check.py`: читає `mic.caf` і `system.caf` (`soundfile`), знаходить піки кліків у кожному, друкує offset на початку, в кінці, максимум; exit 1 якщо max > 0.3 c.
 - [x] **Step 2:** Стенд: default output → Multi-Output (динамік + BlackHole); default input → BlackHole; грати кліки (`afplay clicks.wav`) під час `recorder-cli record 70` → кліки в ОБОХ каналах (system — бо грає системою, mic — бо BlackHole loopback). `python3 drift_check.py <dir>` → звіт у `docs/notes/drift-report.md` (число!).
 - [ ] **Step 3:** `soak.sh`: `recorder-cli record 7200` + YouTube-відео в Chrome на автоплеї; запустити на ніч (`caffeinate -s`). Вранці: файли цілі, тривалість точна, пам'ять процеса стабільна (знімати `footprint` до/після).
-- [ ] **Step 4:** Zoom/Meet приймальні прогони: 60-хв Zoom (Володимир з Windows — «клієнт») і Meet у Chrome; після кожного — drift_check + прослухати вибірково. Результати → приймальна матриця (Task 14).
+- [ ] **Step 4:** Zoom/Meet приймальні прогони: 60-хв Zoom (Володимир з Windows — «співрозмовник») і Meet у Chrome; після кожного — drift_check + прослухати вибірково. Результати → приймальна матриця (Task 14).
 - [ ] **Step 5:** Commit `test: drift harness + soak + acceptance runs`.
 
 ### Task 14: Дистрибуція: DMG, ad-hoc підпис, README, ENGINEERING_NOTES

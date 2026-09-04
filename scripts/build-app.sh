@@ -39,8 +39,8 @@ swiftc -O App/Sources/*.swift "$CORE_BUILD"/RecorderCore.build/*.o \
   -framework ServiceManagement
 
 echo "==> Вкладаю whisper-cli"
-# Transcription used to demand Homebrew from the advisor, which is a dependency no
-# advisor has. The binary is a couple of megabytes — the half gigabyte README refuses to
+# Transcription used to demand Homebrew from the user, which is a dependency no
+# user has. The binary is a couple of megabytes — the half gigabyte README refuses to
 # carry is the *models*, and those are still downloaded on demand.
 #
 # Built from source rather than copied from Homebrew: see scripts/build-whisper.sh for

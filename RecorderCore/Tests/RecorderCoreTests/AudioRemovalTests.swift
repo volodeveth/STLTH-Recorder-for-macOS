@@ -171,7 +171,12 @@ struct AudioRemovalTests {
           "sessionId" : "B7F0E7A4-5F0B-4B2E-9F3B-7C1B2D3E4F50",
           "startedAt" : "2026-08-12T14:00:03.500+03:00",
           "status" : "completed",
-          "tracks" : []
+          "tracks" : [
+            { "channel" : "mic", "channels" : 1, "file" : "mic.caf", "format" : "caf/lpcm",
+              "sampleRate" : 48000, "speaker" : "advisor" },
+            { "channel" : "system", "channels" : 2, "file" : "system.caf", "format" : "caf/lpcm",
+              "sampleRate" : 48000, "speaker" : "client" }
+          ]
         }
         """
         let meta = try SessionMeta.decoder.decode(SessionMeta.self, from: Data(json.utf8))
@@ -179,6 +184,11 @@ struct AudioRemovalTests {
         #expect(meta.mixFile == nil)
         #expect(meta.captureMode == nil)
         #expect(meta.status == .completed)
+        // 1.2.0 labelled the tracks advisor/client; 1.3.0 writes local/remote. The
+        // field is a plain string, so old sessions keep their labels and still load.
+        #expect(meta.tracks.map(\.speaker) == ["advisor", "client"])
+        #expect(SessionMeta.Track.mic.speaker == "local")
+        #expect(SessionMeta.Track.system.speaker == "remote")
     }
 
     @Test("A session written today omits the key rather than writing null")

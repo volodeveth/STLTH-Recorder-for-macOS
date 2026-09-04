@@ -1,10 +1,10 @@
 #!/bin/zsh
 # ТЗ criterion #4: ten minutes of mute must not shift the timeline.
 #
-# The advisor goes quiet for ten minutes while the client keeps talking. If silence
+# The user goes quiet for ten minutes while the other party keeps talking. If silence
 # were dropped instead of written, the microphone track would end up ten minutes
 # shorter — and everything recorded after the pause would sit ten minutes early
-# relative to the client's track. That is the failure this run is built to catch.
+# relative to the remote track. That is the failure this run is built to catch.
 #
 # Wiring (dev bench only):
 #   default output = speakers        → the click train reaches the process tap

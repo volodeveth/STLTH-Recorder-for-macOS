@@ -1033,7 +1033,7 @@ git push && gh run watch $(gh run list --limit 1 --json databaseId -q '.[0].data
 
         // README and `ls -lh` speak in binary units — 1 031 МБ for the speech model,
         // 1.01 ГБ for both. `ByteCountFormatter.file` is decimal and would say 1,08 ГБ,
-        // so the UI must use the binary style or the number the advisor agrees to
+        // so the UI must use the binary style or the number the user agrees to
         // stops matching the number the project documents. The decimal separator is
         // the runner's locale, hence both spellings.
         let shown = ByteCountFormatter.string(fromByteCount: sum, countStyle: .binary)

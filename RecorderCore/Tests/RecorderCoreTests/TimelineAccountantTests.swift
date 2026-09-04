@@ -105,7 +105,7 @@ struct TimelineAccountantTests {
 
     @Test("Ten minutes of mute keep both tracks the same length (ТЗ критерій №4)")
     func tenMinutesOfMuteKeepTracksAligned() {
-        // The client's channel goes quiet for ten minutes while the advisor keeps
+        // The remote channel goes quiet for ten minutes while the local side keeps
         // talking. The tap stops delivering; the microphone does not.
         var system = TimelineAccountant(sampleRate: 48000)
         var mic = TimelineAccountant(sampleRate: 48000)

@@ -9,7 +9,7 @@
     <key>CFBundleShortVersionString</key>
     <string>1.0.0</string>
     <key>NSAudioCaptureUsageDescription</key>
-    <string>STLTH Recorder for macOS записує звук зустрічі (голос клієнта). Аудіо залишається на цьому Mac.</string>
+    <string>STLTH Recorder for macOS записує звук зустрічі (голос співрозмовника). Аудіо залишається на цьому Mac.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>STLTH Recorder for macOS записує ваш голос під час зустрічі.</string>
 </dict>

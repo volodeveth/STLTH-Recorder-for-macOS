@@ -50,7 +50,7 @@ let handle = try store.begin(consentAt: Date())
 print("Сесія: \(handle.id)")
 print("Тека:  \(handle.dir.path)")
 
-// Bench-only: keep a helper process out of the tap. On this Mac the advisor has no
+// Bench-only: keep a helper process out of the tap. On this Mac the user has no
 // microphone, so their voice is synthesised and pushed into the loopback by a
 // separate process — which a global tap would otherwise capture as well, putting the
 // same voice in both tracks.

@@ -5,10 +5,10 @@ import OSLog
 ///
 /// Speaker attribution costs nothing here, and that is the point. Pipelines normally
 /// have to guess who spoke — diarisation, with its own error rate. This one does not:
-/// `mic.caf` is the advisor by construction and `system.caf` is the client, so the
+/// `mic.caf` is the local side by construction and `system.caf` is the remote one, so the
 /// tracks are transcribed separately and simply labelled.
 ///
-/// Everything runs on the machine: the audio never leaves the advisor's Mac, which is
+/// Everything runs on the machine: the audio never leaves the user's Mac, which is
 /// the same constraint that governs the recorder itself (F-3).
 public enum Transcriber {
 
@@ -74,7 +74,7 @@ public enum Transcriber {
     /// has not re-downloaded keeps working; medium is the dev-bench fallback.
     ///
     /// The numbers below were measured on a **human voice through a real Zoom call**
-    /// — 145 words of financial talk read aloud (`Tools/wer-live.sh`), not the
+    /// — 145 words of business talk read aloud (`Tools/wer-live.sh`), not the
     /// synthesised sample that flatters every model. Large-v3 has no row: it was never
     /// run on this bench, and a number nobody measured is worse than a blank.
     ///
@@ -170,7 +170,7 @@ public enum Transcriber {
         defer { try? FileManager.default.removeItem(at: work) }
 
         var sections: [(title: String, lines: [(Int, String)])] = []
-        for (file, title) in [("mic.caf", "Радник"), ("system.caf", "Клієнт")] {
+        for (file, title) in [("mic.caf", "Ви"), ("system.caf", "Співрозмовник")] {
             let source = sessionDir.appendingPathComponent(file)
             guard FileManager.default.fileExists(atPath: source.path) else { continue }
 
@@ -289,7 +289,7 @@ public enum Transcriber {
             "**Модель:** whisper.cpp `\((model as NSString).lastPathComponent)` — локально,"
                 + " аудіо не залишає цей Mac",
             "",
-            "> Розділення за спікерами не вгадується: `mic.caf` — це завжди радник,",
+            "> Розділення за спікерами не вгадується: `mic.caf` — це завжди ви,",
             "> `system.caf` — завжди співрозмовник. Атрибуція реплік випливає з того,",
             "> як зроблено запис, а не з моделі діаризації.",
             "",

@@ -9,10 +9,10 @@
 #
 #   1. clean path      — as the microphone track hears it, no loss at all
 #   2. through a codec — the same speech re-encoded at meeting bitrate, which is what
-#                        the client's track actually receives over Zoom or Meet
+#                        the remote track actually receives over Zoom or Meet
 #
-# The first number is the ceiling: the advisor's own voice on a local microphone.
-# The second is the realistic case for the client's channel, and the gap between them
+# The first number is the ceiling: the user's own voice on a local microphone.
+# The second is the realistic case for the remote channel, and the gap between them
 # is the cost the network imposes — not a defect of the transcriber.
 #
 # A synthetic voice is easier than a human one, so both figures are optimistic. They
@@ -30,7 +30,7 @@ mkdir -p "$OUT"
 rm -f "$OUT/timing.txt"
 
 cat > "$OUT/reference.txt" <<'TEXT'
-Доброго дня. Мене звати Володимир, я ваш фінансовий радник.
+Доброго дня. Мене звати Володимир, дякую, що знайшли час на цю розмову.
 Сьогодні ми обговоримо структуру вашого портфеля та цілі на найближчі три роки.
 Почнімо з того, який рівень ризику для вас комфортний.
 Далі подивимось на розподіл між акціями та облігаціями.
@@ -83,8 +83,8 @@ for model in "${MODELS[@]}"; do
   echo "════ Модель $name ($size) ════"
   for variant in clean coded; do
     case $variant in
-      clean) label="Канал радника (локальний мікрофон, без втрат)" ;;
-      coded) label="Канал клієнта (крізь кодек зустрічі, 24 кбіт/с)" ;;
+      clean) label="Ваш канал (локальний мікрофон, без втрат)" ;;
+      coded) label="Канал співрозмовника (крізь кодек зустрічі, 24 кбіт/с)" ;;
     esac
     echo ""
     echo "── $label"

@@ -4,20 +4,20 @@
 #   Tools/zoom-run.sh [хвилин]        # default 60
 #
 # The problem this run has to solve first: the bench Mac has no microphone, so the
-# advisor's side would be silent and "voices land in different files" could not be
-# demonstrated at all. Instead the advisor is synthesised — `say -v Lesya` writes a
+# local side would be silent and "voices land in different files" could not be
+# demonstrated at all. Instead the local voice is synthesised — `say -v Lesya` writes a
 # Ukrainian monologue, `play-to-device` pushes it straight into BlackHole, and Zoom
 # is configured to use BlackHole as its microphone. That single feed does double
-# duty: the client hears the advisor over the call, and our microphone track records
+# duty: the remote side hears the local voice over the call, and our microphone track records
 # the very same voice through the loopback.
 #
 # Channel separation then follows from the routing itself, with nothing shared:
 #
-#   advisor  → say → BlackHole → Zoom mic  → heard by the client
+#   local    → say → BlackHole → Zoom mic  → heard by the remote side
 #                             ↘ mic.caf    (loopback input)
-#   client   → Zoom → speakers → tap       → system.caf
+#   remote   → Zoom → speakers → tap       → system.caf
 #
-# Zoom never plays the advisor back, so neither voice can leak into the other track.
+# Zoom never plays the local voice back, so neither voice can leak into the other track.
 #
 # Start with `open` / double-click — TCC grants belong to Terminal.
 set -euo pipefail
@@ -35,7 +35,7 @@ PYTHON=".venv/bin/python"
 # the thing a rerun overwrites.
 RUN_DIR="$OUT_DIR/$(date '+%Y%m%d-%H%M%S')"
 
-VOICE="$RUN_DIR/advisor.wav"
+VOICE="$RUN_DIR/local.wav"
 
 mkdir -p "$RUN_DIR"
 
@@ -44,7 +44,7 @@ echo "  Приймальний прогін у $PLATFORM — $MINUTES хв"
 echo "════════════════════════════════════════════════════════"
 echo ""
 echo "ПЕРЕД стартом переконайся, що:"
-echo "  • ти вже в мітингу з Windows як «клієнт»;"
+echo "  • ти вже в мітингу з Windows як «співрозмовник»;"
 echo "  • на маку в $PLATFORM: мікрофон = BlackHole 2ch (або «за замовчуванням»),"
 echo "                          динамік  = Mac mini Speakers."
 echo ""
@@ -60,18 +60,18 @@ SwitchAudioSource -t output -s "Mac mini Speakers" >/dev/null
 echo "    вхід:  $(SwitchAudioSource -c -t input)"
 echo "    вихід: $(SwitchAudioSource -c -t output)"
 
-echo "==> Синтезую монолог радника"
-SCRIPT_TEXT="Доброго дня. Мене звати Володимир, я ваш фінансовий радник. \
+echo "==> Синтезую монолог локального боку"
+SCRIPT_TEXT="Доброго дня. Мене звати Володимир, дякую, що знайшли час на цю розмову. \
 Сьогодні ми обговоримо структуру вашого портфеля та цілі на найближчі три роки. \
 Почнімо з того, який рівень ризику для вас комфортний. \
 Далі подивимось на розподіл між акціями та облігаціями. \
 Наприкінці зустрічі я підсумую домовленості та надішлю вам протокол."
 
-say -v Lesya -o "$RUN_DIR/advisor.aiff" "$SCRIPT_TEXT"
+say -v Lesya -o "$RUN_DIR/local.aiff" "$SCRIPT_TEXT"
 # Loop the monologue for the whole meeting: the microphone track has to carry speech
 # throughout, not fall silent after the first minute.
-afconvert -f WAVE -d LEI16@48000 -c 2 "$RUN_DIR/advisor.aiff" "$RUN_DIR/advisor-one.wav" >/dev/null
-$PYTHON - "$RUN_DIR/advisor-one.wav" "$VOICE" "$SECONDS_TO_RECORD" <<'PY'
+afconvert -f WAVE -d LEI16@48000 -c 2 "$RUN_DIR/local.aiff" "$RUN_DIR/local-one.wav" >/dev/null
+$PYTHON - "$RUN_DIR/local-one.wav" "$VOICE" "$SECONDS_TO_RECORD" <<'PY'
 import sys, numpy as np, soundfile as sf
 src, dst, total = sys.argv[1], sys.argv[2], int(sys.argv[3])
 data, rate = sf.read(src)
@@ -87,15 +87,15 @@ print(f"    монолог на {(total + 60) / 60:.0f} хв")
 PY
 
 echo ""
-echo "==> Старт. Говори з Windows як клієнт — не мовчи довше хвилини."
-echo "    Мак у цей час «говорить» синтезованим голосом радника."
+echo "==> Старт. Говори з Windows як співрозмовник — не мовчи довше хвилини."
+echo "    Мак у цей час «говорить» синтезованим голосом локального боку."
 echo ""
 
 ./build/play-to-device "$VOICE" "BlackHole" $((SECONDS_TO_RECORD + 30)) >/dev/null 2>&1 &
 VOICE_PID=$!
 trap 'kill $VOICE_PID 2>/dev/null || true' EXIT
 
-# The player is excluded from the tap: without that its output — the advisor's
+# The player is excluded from the tap: without that its output — the user's
 # synthesised voice — would be captured into the system track too, and the two
 # channels would carry the same voice.
 caffeinate -s ./build/recorder-cli record "$SECONDS_TO_RECORD" --dir "$RUN_DIR/session" \
@@ -131,7 +131,7 @@ if len(mic) != len(system):
 else:
     print("    ✅ треки однакової довжини")
 
-for name, track in (("радника (mic)", mic), ("клієнта (system)", system)):
+for name, track in (("ви (mic)", mic), ("співрозмовник (system)", system)):
     if np.sqrt((track ** 2).mean()) < 1e-4:
         print(f"    ❌ канал {name} практично порожній")
         ok = False

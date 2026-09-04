@@ -52,7 +52,7 @@ struct WatchdogRuleTests {
                                           deviceReportsRunning: false) == false)
     }
 
-    @Test("Ten minutes of client silence do not trigger a rebuild (ТЗ критерій №4)")
+    @Test("Ten minutes of remote silence do not trigger a rebuild (ТЗ критерій №4)")
     func tenMinutesOfSilenceDoNotRebuild() {
         // The stream is running and delivering zero-filled buffers, so the time since
         // the last callback stays near zero no matter how long the room is quiet.

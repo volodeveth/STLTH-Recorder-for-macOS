@@ -3,7 +3,7 @@ import Foundation
 import Testing
 @testable import RecorderCore
 
-/// The installer exists so the advisor never opens a terminal, which means its failure
+/// The installer exists so the user never opens a terminal, which means its failure
 /// modes are the interesting part: a connection that drops halfway, a server that
 /// answers with an error page instead of a model, a user who changes their mind. None
 /// of these tests touch the network — the fetch is injected.
@@ -290,7 +290,7 @@ struct ModelInstallerTests {
 
         // README and `ls -lh` speak in binary units — 1 031 МБ for the speech model,
         // 1,01 ГБ for both. `ByteCountFormatter.file` is decimal and would say 1,08 ГБ,
-        // so the UI must use the binary style or the number the advisor agrees to
+        // so the UI must use the binary style or the number the user agrees to
         // stops matching the number the project documents. The decimal separator is
         // the runner's locale, hence both spellings.
         let shown = ByteCountFormatter.string(fromByteCount: sum, countStyle: .binary)

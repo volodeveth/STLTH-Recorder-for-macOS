@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import RecorderCore
 
-/// The rule that decides when to remind the advisor to start recording.
+/// The rule that decides when to remind the user to start recording.
 ///
 /// Getting this wrong is worse than having no reminder: one that fires while somebody
 /// dictates a note, or fires twice for the same call, teaches people to ignore it.
@@ -55,7 +55,7 @@ struct MeetingDetectorTests {
         // Dictation and voice memos must never trigger a reminder.
         #expect(!MeetingDetector.meetingBundleIDs.contains("com.apple.VoiceMemos"))
         #expect(!MeetingDetector.meetingBundleIDs.contains("com.apple.SpeechRecognitionCore"))
-        // Neither may we detect ourselves and remind the advisor about our own capture.
+        // Neither may we detect ourselves and remind the user about our own capture.
         #expect(!MeetingDetector.meetingBundleIDs.contains("ua.stlth.STLTHRecorder"))
     }
 }

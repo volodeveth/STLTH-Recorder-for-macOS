@@ -60,9 +60,9 @@ public enum SessionMixer {
 
     /// One output frame from one frame of each source. Pure, so the shape of the mix
     /// is testable without touching a file.
-    static func frame(advisor: Float, client: Float) -> (left: Float, right: Float) {
-        let left = advisor * dominant + client * bleed
-        let right = client * dominant + advisor * bleed
+    static func frame(local: Float, remote: Float) -> (left: Float, right: Float) {
+        let left = local * dominant + remote * bleed
+        let right = remote * dominant + local * bleed
         return (clamp(left * headroom), clamp(right * headroom))
     }
 
@@ -184,17 +184,17 @@ public enum SessionMixer {
             outBuffer.frameLength = count
             let left = outBuffer.floatChannelData![0]
             let right = outBuffer.floatChannelData![1]
-            let advisor = micBuffer.floatChannelData![0]
-            let clientL = systemBuffer.floatChannelData![0]
-            let clientR = systemFormat.channelCount > 1
+            let local = micBuffer.floatChannelData![0]
+            let remoteL = systemBuffer.floatChannelData![0]
+            let remoteR = systemFormat.channelCount > 1
                 ? systemBuffer.floatChannelData![1]
                 : systemBuffer.floatChannelData![0]
 
             for index in 0..<Int(count) {
-                // The client's track is stereo but carries one voice; fold it to mono
+                // The remote track is stereo but carries one voice; fold it to mono
                 // before panning, or the two sides would arrive at different levels.
-                let client = (clientL[index] + clientR[index]) * 0.5
-                let mixed = frame(advisor: advisor[index], client: client)
+                let remote = (remoteL[index] + remoteR[index]) * 0.5
+                let mixed = frame(local: local[index], remote: remote)
                 left[index] = mixed.left
                 right[index] = mixed.right
             }

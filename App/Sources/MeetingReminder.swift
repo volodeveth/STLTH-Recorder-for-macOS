@@ -3,15 +3,15 @@ import RecorderCore
 import SwiftUI
 import UserNotifications
 
-/// Watches for a meeting and asks the advisor whether to record it.
+/// Watches for a meeting and asks the user whether to record it.
 ///
 /// The ТЗ names the problem this solves: «хтось просто забуває увімкнути запис, і
-/// зустріч втрачається безповоротно». The decision stays with the advisor — this only
+/// зустріч втрачається безповоротно». The decision stays with the user — this only
 /// makes sure the question is asked, once, at the moment it matters.
 @MainActor
 final class MeetingReminder: ObservableObject {
 
-    /// Meeting in progress that the advisor has not started recording. The menu shows
+    /// Meeting in progress that the user has not started recording. The menu shows
     /// it even when a notification cannot be delivered.
     @Published private(set) var pending: MeetingDetector.Meeting?
     /// The meeting is over but the recording is not. Shown in the menu for the same
@@ -27,7 +27,7 @@ final class MeetingReminder: ObservableObject {
     ///
     /// It first ran from `.task` on the menu's content — and `MenuBarExtra` builds
     /// that content lazily, on the first click. So detection did not begin until the
-    /// advisor happened to open the menu, and the notification permission was never
+    /// user happened to open the menu, and the notification permission was never
     /// requested: a meeting on a fresh launch produced nothing at all. The one moment
     /// this feature exists for is exactly the one where nobody has opened the menu.
     init() {
@@ -55,7 +55,7 @@ final class MeetingReminder: ObservableObject {
         guard isEnabled else {
             return
         }
-        // Already recording: the advisor did the right thing without being asked.
+        // Already recording: the user did the right thing without being asked.
         guard controller?.isRecording == false else {
             detector.suppressForCurrentMeeting()
             return
@@ -64,7 +64,7 @@ final class MeetingReminder: ObservableObject {
         notify(about: meeting)
     }
 
-    /// The advisor started recording, so stop asking about this meeting.
+    /// The user started recording, so stop asking about this meeting.
     func acknowledge() {
         pending = nil
         recordingOutlivedMeeting = false
@@ -80,8 +80,8 @@ final class MeetingReminder: ObservableObject {
     ///
     /// Forgetting to stop is the worse of the two mistakes. Forgetting to start loses
     /// a meeting; forgetting to stop keeps capturing the room afterwards — the
-    /// advisor's next call, a conversation with a colleague — audio nobody consented
-    /// to, filed under a session that claims a client agreed to it.
+    /// user's next call, a conversation with a colleague — audio nobody consented
+    /// to, filed under a session that claims the other party agreed to it.
     private func meetingEnded() {
         pending = nil
         guard isEnabled, controller?.isRecording == true else { return }

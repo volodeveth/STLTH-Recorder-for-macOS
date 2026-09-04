@@ -23,7 +23,7 @@ public final class CAFWriter {
 
     /// - Parameters:
     ///   - url: destination, expected to end in `.caf`.
-    ///   - channels: 1 for the mic track (advisor), 2 for the system track (client).
+    ///   - channels: 1 for the mic track (local), 2 for the system track (remote).
     public init(url: URL, channels: AVAudioChannelCount) throws {
         self.url = url
 

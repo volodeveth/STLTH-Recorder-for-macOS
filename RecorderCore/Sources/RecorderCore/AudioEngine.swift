@@ -124,11 +124,11 @@ public final class AudioEngine: AudioEngineProtocol {
     /// Extra processes kept out of the system tap, by pid.
     ///
     /// Empty in the product: a global tap is meant to catch everything the Mac plays.
-    /// The bench needs it because the advisor has no microphone here — their voice is
+    /// The bench needs it because the user has no microphone here — their voice is
     /// synthesised and pushed into the loopback by a *separate process*, and a global
     /// tap picks that up too, so the same voice lands in both tracks and channel
     /// separation cannot be demonstrated. Excluding the player restores the real
-    /// topology, where the advisor's voice exists only as microphone input.
+    /// topology, where the user's voice exists only as microphone input.
     private let extraExcludedProcesses: [pid_t]
 
     public init(sessionDir: URL, excludingFromTap extraExcludedProcesses: [pid_t] = []) {
@@ -217,7 +217,7 @@ public final class AudioEngine: AudioEngineProtocol {
 
     // MARK: - Device changes
 
-    /// Rebuild the capture graph when the advisor switches devices mid-meeting —
+    /// Rebuild the capture graph when the user switches devices mid-meeting —
     /// plugging in AirPods is the everyday case (spec §4).
     private func startWatchingDevices() {
         deviceMonitor.onDefaultInputChanged = { [weak self] name in
@@ -381,7 +381,7 @@ public final class AudioEngine: AudioEngineProtocol {
         description.uuid = tapUUID
         description.name = "STLTHRecorderSystemTap"
         description.isPrivate = true
-        // Must stay unmuted: the advisor has to keep hearing the client.
+        // Must stay unmuted: the user has to keep hearing the other party.
         description.muteBehavior = CATapMuteBehavior.unmuted
 
         var newTapID = AudioObjectID(kAudioObjectUnknown)
@@ -660,14 +660,14 @@ public final class AudioEngine: AudioEngineProtocol {
         lastCallbackAt = CoreAudioSupport.seconds(fromHostTime: mach_absolute_time())
         resolveLayoutIfNeeded(buffers)
 
-        // System track (client).
+        // System track (remote).
         if let index = systemBufferIndex, index < buffers.count {
             noteSystemAudio(in: buffers[index])
             write(buffer: buffers[index], to: systemWriter, timeline: &systemTimeline,
                   timestamp: timestamp, channels: 2)
         }
 
-        // Mic track (advisor). Absent on a machine with no audio input — the track is
+        // Mic track (local). Absent on a machine with no audio input — the track is
         // still written, as silence, so the timeline invariant holds either way.
         if let index = micBufferIndex, index < buffers.count {
             write(buffer: buffers[index], to: micWriter, timeline: &micTimeline,

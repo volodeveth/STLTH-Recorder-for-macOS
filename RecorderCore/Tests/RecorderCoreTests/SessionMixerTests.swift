@@ -129,21 +129,21 @@ struct SessionMixerTests {
         #expect(abs(Int(buffer.frameLength) - 48000 * 4) <= Int(0.05 * 48000))
     }
 
-    @Test("The advisor lands left and the client lands right")
+    @Test("The local voice lands left and the remote one lands right")
     func voicesAreSeparatedAcrossChannels() throws {
         let dir = try makeSession()
         defer { try? FileManager.default.removeItem(at: dir) }
 
-        // Only the advisor speaks.
+        // Only the local side speaks.
         try writeTrack(at: dir.appendingPathComponent("mic.caf"),
                        channels: 1, frames: 48000, amplitude: 0.6)
         let silent = try CAFWriter(url: dir.appendingPathComponent("system.caf"), channels: 2)
         try silent.writeSilence(frames: 48000)
 
-        let advisorOnly = try analyse(try SessionMixer.mix(sessionDir: dir))
-        #expect(advisorOnly.leftRMS > advisorOnly.rightRMS * 3)
+        let localOnly = try analyse(try SessionMixer.mix(sessionDir: dir))
+        #expect(localOnly.leftRMS > localOnly.rightRMS * 3)
 
-        // And now only the client.
+        // And now only the remote side.
         let other = try makeSession()
         defer { try? FileManager.default.removeItem(at: other) }
         let quiet = try CAFWriter(url: other.appendingPathComponent("mic.caf"), channels: 1)
@@ -151,8 +151,8 @@ struct SessionMixerTests {
         try writeTrack(at: other.appendingPathComponent("system.caf"),
                        channels: 2, frames: 48000, amplitude: 0.6)
 
-        let clientOnly = try analyse(try SessionMixer.mix(sessionDir: other))
-        #expect(clientOnly.rightRMS > clientOnly.leftRMS * 3)
+        let remoteOnly = try analyse(try SessionMixer.mix(sessionDir: other))
+        #expect(remoteOnly.rightRMS > remoteOnly.leftRMS * 3)
     }
 
     @Test("Two loud sources do not clip")

@@ -11,7 +11,7 @@ number there is no way to compare models, no way to notice a regression, and no
 honest answer to "чи якісно транскрибує".
 
     python3 Tools/wer.py reference.txt hypothesis.txt
-    python3 Tools/wer.py reference.txt --transcript transcript.md --section Радник
+    python3 Tools/wer.py reference.txt --transcript transcript.md --section Ви
 """
 from __future__ import annotations
 
@@ -97,7 +97,7 @@ def main() -> int:
     parser.add_argument("reference", type=Path, help="файл з еталонним текстом")
     parser.add_argument("hypothesis", type=Path, nargs="?", help="файл з розпізнаним текстом")
     parser.add_argument("--transcript", type=Path, help="transcript.md замість hypothesis")
-    parser.add_argument("--section", default="Радник", help="секція транскрипту (Радник/Клієнт)")
+    parser.add_argument("--section", default="Ви", help="секція транскрипту (Ви/Співрозмовник)")
     args = parser.parse_args()
 
     reference = normalise(args.reference.read_text(encoding="utf-8"))

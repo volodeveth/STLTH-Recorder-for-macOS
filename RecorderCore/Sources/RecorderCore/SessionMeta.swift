@@ -69,7 +69,7 @@ public struct SessionMeta: Codable, Equatable, Sendable {
 
     public struct Track: Codable, Equatable, Sendable {
         public var channel: String   // "mic" | "system"
-        public var speaker: String   // "advisor" | "client"
+        public var speaker: String   // "local" | "remote"; sessions from 1.2.0 carry "advisor" | "client"
         public var file: String
         public var format: String
         public var sampleRate: Int
@@ -85,9 +85,9 @@ public struct SessionMeta: Codable, Equatable, Sendable {
             self.channels = channels
         }
 
-        public static let mic = Track(channel: "mic", speaker: "advisor", file: "mic.caf",
+        public static let mic = Track(channel: "mic", speaker: "local", file: "mic.caf",
                                       format: "caf/lpcm", sampleRate: 48000, channels: 1)
-        public static let system = Track(channel: "system", speaker: "client", file: "system.caf",
+        public static let system = Track(channel: "system", speaker: "remote", file: "system.caf",
                                          format: "caf/lpcm", sampleRate: 48000, channels: 2)
     }
 

@@ -60,7 +60,7 @@ struct MenuBarView: View {
                 }
             } else {
                 if let meeting = reminder.pending {
-                    // The advisor is in a call and not recording it — the one moment
+                    // The user is in a call and not recording it — the one moment
                     // this app exists to catch.
                     Text("● Зустріч у \(meeting.appName) — запис не ведеться")
                     Divider()

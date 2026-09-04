@@ -106,7 +106,7 @@ let tapDescription = CATapDescription(stereoGlobalTapButExcludeProcesses: [ourOw
 tapDescription.uuid = UUID()
 tapDescription.name = "STLTHRecorderSystemTap"
 tapDescription.isPrivate = true          // властивість privateTap, getter isPrivate
-tapDescription.muteBehavior = .unmuted   // ОБОВ'ЯЗКОВО unmuted: клієнта має чути радник
+tapDescription.muteBehavior = .unmuted   // ОБОВ'ЯЗКОВО unmuted: співрозмовника має чути користувач
 ```
 
 Порожній масив = тап усього без винятків. Ми виключаємо **власний процес**

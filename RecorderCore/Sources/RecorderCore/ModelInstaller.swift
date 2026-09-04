@@ -3,7 +3,7 @@ import CryptoKit
 import Foundation
 import OSLog
 
-/// Fetches the two models transcription needs, so the advisor never opens a terminal.
+/// Fetches the two models transcription needs, so the user never opens a terminal.
 ///
 /// The models stay out of the bundle for the reason README gives: half a gigabyte in a
 /// recorder whose core job does not need it. What went wrong was the *replacement* —

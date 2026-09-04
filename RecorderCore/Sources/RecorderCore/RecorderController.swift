@@ -62,7 +62,7 @@ public final class RecorderController: ObservableObject {
 
     /// Begin a session. Ignored unless idle — that guard *is* the duplicate protection.
     ///
-    /// - Parameter consentAt: when the advisor confirmed the client's consent (F-4).
+    /// - Parameter consentAt: when the user confirmed the other party's consent (F-4).
     public func startTapped(consentAt: Date) {
         guard state == .idle else { return }
         state = .preparing

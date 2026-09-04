@@ -5,11 +5,11 @@
 #
 # Speaker attribution costs nothing here, and that is the point. Most transcription
 # pipelines have to guess who spoke — diarisation, with its own error rate. This one
-# does not: mic.caf is the advisor by construction and system.caf is the client, so
+# does not: mic.caf is the local side by construction and system.caf is the remote one, so
 # the two tracks are transcribed separately and simply labelled. What normally needs
 # a model is settled by the recording topology.
 #
-# Everything runs on the machine. Audio never leaves the advisor's Mac — the same
+# Everything runs on the machine. Audio never leaves the user's Mac — the same
 # constraint that governs the recorder governs the transcript (ТЗ F-3).
 set -euo pipefail
 
@@ -74,13 +74,13 @@ lines = [
     f"**Тривалість:** {stamp(meta['durationMs'])}",
     f"**Модель:** whisper.cpp `{model.name}` — локально, аудіо не залишає цей Mac",
     "",
-    "> Розділення за спікерами не вгадується: `mic.caf` — це завжди радник,",
+    "> Розділення за спікерами не вгадується: `mic.caf` — це завжди ви,",
     "> `system.caf` — завжди співрозмовник. Атрибуція реплік випливає з того,",
     "> як зроблено запис, а не з моделі діаризації.",
     "",
 ]
 
-for track, title in (("mic", "Радник"), ("system", "Клієнт")):
+for track, title in (("mic", "Ви"), ("system", "Співрозмовник")):
     items = segments(track)
     lines.append(f"## {title}")
     lines.append("")
@@ -94,6 +94,6 @@ for track, title in (("mic", "Радник"), ("system", "Клієнт")):
 target = session / "transcript.md"
 target.write_text("\n".join(lines), encoding="utf-8")
 print(f"    ✅ {target}")
-for track, title in (("mic", "Радник"), ("system", "Клієнт")):
+for track, title in (("mic", "Ви"), ("system", "Співрозмовник")):
     print(f"    {title}: {len(segments(track))} реплік")
 PY

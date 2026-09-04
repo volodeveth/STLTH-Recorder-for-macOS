@@ -31,7 +31,7 @@ struct SessionStoreTests {
         let store = SessionStore(root: root)
         let handle = try store.begin(consentAt: Date())
 
-        // The advisor plugs in AirPods ten minutes into the meeting: the engine
+        // The user plugs in AirPods ten minutes into the meeting: the engine
         // rebuilds its aggregate, and the session has to say so — otherwise a gap in
         // the audio later looks like a bug instead of a documented device switch.
         let switchedAt = Date()
@@ -98,14 +98,14 @@ struct SessionStoreTests {
         #expect(meta.tracks.count == 2)
 
         let mic = try #require(meta.tracks.first { $0.channel == "mic" })
-        #expect(mic.speaker == "advisor")
+        #expect(mic.speaker == "local")
         #expect(mic.file == "mic.caf")
         #expect(mic.channels == 1)
         #expect(mic.sampleRate == 48000)
         #expect(mic.format == "caf/lpcm")
 
         let system = try #require(meta.tracks.first { $0.channel == "system" })
-        #expect(system.speaker == "client")
+        #expect(system.speaker == "remote")
         #expect(system.file == "system.caf")
         #expect(system.channels == 2)
     }

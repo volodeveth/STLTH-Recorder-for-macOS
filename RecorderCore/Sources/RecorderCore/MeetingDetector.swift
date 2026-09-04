@@ -3,10 +3,10 @@ import Darwin
 import Foundation
 import OSLog
 
-/// Notices that a meeting has started, so the advisor can be reminded to record it.
+/// Notices that a meeting has started, so the user can be reminded to record it.
 ///
 /// The ТЗ names the problem directly: «хтось просто забуває увімкнути запис, і
-/// зустріч втрачається безповоротно». The decision to record stays with the advisor —
+/// зустріч втрачається безповоротно». The decision to record stays with the user —
 /// this only makes sure they are asked.
 ///
 /// **How a meeting is recognised.** Not by reading browser tabs (that needs Apple

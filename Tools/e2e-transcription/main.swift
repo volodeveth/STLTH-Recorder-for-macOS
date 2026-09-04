@@ -107,7 +107,7 @@ func makeSession(from source: URL?) throws -> SessionHandle {
         do {
             try run("/usr/bin/afconvert", ["-f", "caff", "-d", "LEI16@48000", "-c", "2", source.path, system.path])
         } catch {
-            // afconvert on this macOS would not upmix; a mono client track still
+            // afconvert on this macOS would not upmix; a mono remote track still
             // exercises everything the pipeline does with it.
             try FileManager.default.copyItem(at: mic, to: system)
         }
