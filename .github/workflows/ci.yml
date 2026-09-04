@@ -32,3 +32,25 @@ jobs:
         run: python3 -m pip install --quiet numpy soundfile
       - name: Self-test on synthetic audio
         run: python3 Tools/selftest_drift.py
+
+  app-build:
+    name: App bundle (SwiftUI layer compiles and links)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show toolchain
+        run: swift --version && xcodebuild -version
+      # whisper-cli takes minutes to build and changes only when its pinned version
+      # does, so the built binary is cached on the script that pins it.
+      - name: Cache whisper-cli
+        uses: actions/cache@v4
+        with:
+          path: build/whisper
+          key: whisper-cli-${{ runner.os }}-${{ hashFiles('scripts/build-whisper.sh') }}
+      # The core's job runs `swift test`; this one exists because nothing else on a
+      # push compiles App/Sources — and the person shipping this has no Mac to notice
+      # a SwiftUI error before it lands in the DMG. Same path release.sh takes.
+      - name: Build STLTHRecorder.app (no Xcode, same path as release.sh)
+        run: scripts/build-app.sh release
+      - name: The bundle carries whisper-cli
+        run: test -x build/STLTHRecorder.app/Contents/MacOS/whisper-cli
