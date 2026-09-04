@@ -18,8 +18,8 @@ targets:
       properties:
         LSUIElement: true
         CFBundleDisplayName: STLTH Recorder for macOS
-        CFBundleShortVersionString: "1.2.0"
-        CFBundleVersion: "3"
+        CFBundleShortVersionString: "1.3.0"
+        CFBundleVersion: "4"
         # Microphone (advisor's voice). Shown in the TCC prompt.
         NSMicrophoneUsageDescription: "STLTH Recorder for macOS записує ваш голос під час зустрічі."
         # System audio (client's voice). Key confirmed against AudioCap's Info.plist —
@@ -34,8 +34,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ua.stlth.STLTHRecorder
-        MARKETING_VERSION: "1.2.0"
-        CURRENT_PROJECT_VERSION: "3"
+        MARKETING_VERSION: "1.3.0"
+        CURRENT_PROJECT_VERSION: "4"
         CODE_SIGN_IDENTITY: "-"
         CODE_SIGN_STYLE: Manual
         DEVELOPMENT_TEAM: ""
