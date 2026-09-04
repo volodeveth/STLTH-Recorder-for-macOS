@@ -1,0 +1,61 @@
+вихід: Mac mini Speakers
+вхід:  BlackHole 2ch
+
+--- тиша (нічого не грає) ---
+  1 с: DeviceIsRunning=false  колбеків за секунду=0
+  2 с: DeviceIsRunning=false  колбеків за секунду=0
+  3 с: DeviceIsRunning=false  колбеків за секунду=0
+  4 с: DeviceIsRunning=false  колбеків за секунду=0
+  5 с: DeviceIsRunning=false  колбеків за секунду=0
+
+вмикаю звук…
+--- звук грає ---
+  1 с: DeviceIsRunning=true  колбеків за секунду=94
+  2 с: DeviceIsRunning=true  колбеків за секунду=94
+  3 с: DeviceIsRunning=true  колбеків за секунду=94
+  4 с: DeviceIsRunning=true  колбеків за секунду=94
+  5 с: DeviceIsRunning=true  колбеків за секунду=94
+
+--- знову тиша (довгий хвіст) ---
+  1 с: DeviceIsRunning=true  колбеків за секунду=94
+  2 с: DeviceIsRunning=true  колбеків за секунду=94
+  3 с: DeviceIsRunning=true  колбеків за секунду=94
+  4 с: DeviceIsRunning=true  колбеків за секунду=94
+  5 с: DeviceIsRunning=true  колбеків за секунду=95
+  6 с: DeviceIsRunning=true  колбеків за секунду=95
+  7 с: DeviceIsRunning=true  колбеків за секунду=94
+  8 с: DeviceIsRunning=true  колбеків за секунду=95
+  9 с: DeviceIsRunning=true  колбеків за секунду=95
+  10 с: DeviceIsRunning=true  колбеків за секунду=95
+  11 с: DeviceIsRunning=true  колбеків за секунду=94
+  12 с: DeviceIsRunning=true  колбеків за секунду=95
+  13 с: DeviceIsRunning=true  колбеків за секунду=95
+  14 с: DeviceIsRunning=true  колбеків за секунду=94
+  15 с: DeviceIsRunning=true  колбеків за секунду=94
+  16 с: DeviceIsRunning=true  колбеків за секунду=94
+  17 с: DeviceIsRunning=true  колбеків за секунду=95
+  18 с: DeviceIsRunning=true  колбеків за секунду=94
+  19 с: DeviceIsRunning=true  колбеків за секунду=95
+  20 с: DeviceIsRunning=true  колбеків за секунду=94
+  21 с: DeviceIsRunning=true  колбеків за секунду=94
+  22 с: DeviceIsRunning=true  колбеків за секунду=95
+  23 с: DeviceIsRunning=true  колбеків за секунду=95
+  24 с: DeviceIsRunning=true  колбеків за секунду=94
+  25 с: DeviceIsRunning=true  колбеків за секунду=94
+  26 с: DeviceIsRunning=true  колбеків за секунду=94
+  27 с: DeviceIsRunning=true  колбеків за секунду=94
+  28 с: DeviceIsRunning=true  колбеків за секунду=94
+  29 с: DeviceIsRunning=true  колбеків за секунду=95
+  30 с: DeviceIsRunning=true  колбеків за секунду=94
+  31 с: DeviceIsRunning=true  колбеків за секунду=94
+  32 с: DeviceIsRunning=true  колбеків за секунду=94
+  33 с: DeviceIsRunning=true  колбеків за секунду=93
+  34 с: DeviceIsRunning=true  колбеків за секунду=94
+  35 с: DeviceIsRunning=true  колбеків за секунду=93
+  36 с: DeviceIsRunning=true  колбеків за секунду=94
+  37 с: DeviceIsRunning=true  колбеків за секунду=94
+  38 с: DeviceIsRunning=true  колбеків за секунду=94
+  39 с: DeviceIsRunning=true  колбеків за секунду=94
+  40 с: DeviceIsRunning=true  колбеків за секунду=94
+
+Готово.

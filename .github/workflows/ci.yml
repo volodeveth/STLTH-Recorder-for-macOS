@@ -1,0 +1,34 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  core-tests:
+    name: RecorderCore unit tests
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show toolchain
+        run: swift --version && xcodebuild -version
+      - name: Unit tests (RecorderCore)
+        run: |
+          if [ -d RecorderCore ]; then
+            swift test --package-path RecorderCore
+          else
+            echo "no package yet"
+          fi
+
+  drift-tools:
+    name: Drift toolchain self-test
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: python3 -m pip install --quiet numpy soundfile
+      - name: Self-test on synthetic audio
+        run: python3 Tools/selftest_drift.py

@@ -1,0 +1,37 @@
+{
+  "appVersion" : "1.0.0",
+  "consent" : {
+    "at" : "2026-08-06T14:07:49.930-07:00",
+    "confirmed" : true
+  },
+  "deviceChanges" : [
+
+  ],
+  "devices" : {
+    "input" : "",
+    "output" : ""
+  },
+  "durationMs" : 1156139,
+  "osVersion" : "26.6.0",
+  "sessionId" : "EFAC8673-5E75-4BCD-8F8E-C39DC659BC66",
+  "startedAt" : "2026-08-06T14:07:49.930-07:00",
+  "status" : "interrupted",
+  "tracks" : [
+    {
+      "channel" : "mic",
+      "channels" : 1,
+      "file" : "mic.caf",
+      "format" : "caf/lpcm",
+      "sampleRate" : 48000,
+      "speaker" : "advisor"
+    },
+    {
+      "channel" : "system",
+      "channels" : 2,
+      "file" : "system.caf",
+      "format" : "caf/lpcm",
+      "sampleRate" : 48000,
+      "speaker" : "client"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+name: release
+
+# Збирає розповсюджуваний DMG на macOS-ранері.
+#
+# Навіщо: реліз досі збирався руками на стенді, тому опублікований DMG відставав
+# від main на дев'ять коммітів і не містив ані нагадувань про зустрічі, ані
+# зведеного файлу. Збірка тут повторювана і не залежить від того, чи є під рукою Mac.
+#
+# Ранер дає лише артефакт. Публікація релізу лишається окремим свідомим кроком —
+# DMG, якого ніхто не запускав, не має потрапляти на сторінку Releases автоматично.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Версія без префікса v (напр. 1.1.0)"
+        required: true
+        type: string
+
+jobs:
+  dmg:
+    name: Build DMG
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: swift --version && xcodebuild -version
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      # release.sh сам прогонить `make test`, збере без Xcode, підпише ad-hoc
+      # і перевірить, що образ монтується, а підпис усередині нього валідний.
+      # Версія йде через env, а не через підстановку в рядок команди.
+      - name: Build and package
+        env:
+          VERSION: ${{ inputs.version }}
+        run: scripts/release.sh "$VERSION"
+
+      - name: Describe the image
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          ls -lh dist
+          shasum -a 256 "dist/STLTHRecorder-$VERSION.dmg"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: STLTHRecorder-${{ inputs.version }}-dmg
+          path: dist/*.dmg
+          if-no-files-found: error

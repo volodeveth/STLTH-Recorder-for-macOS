@@ -1,0 +1,43 @@
+name: STLTHRecorder
+options:
+  bundleIdPrefix: ua.stlth
+  deploymentTarget:
+    macOS: "14.4"
+packages:
+  RecorderCore:
+    path: RecorderCore
+targets:
+  STLTHRecorder:
+    type: application
+    platform: macOS
+    sources: [App/Sources]
+    dependencies:
+      - package: RecorderCore
+    info:
+      path: App/Info.plist
+      properties:
+        LSUIElement: true
+        CFBundleDisplayName: STLTH Recorder for macOS
+        CFBundleShortVersionString: "1.2.0"
+        CFBundleVersion: "3"
+        # Microphone (advisor's voice). Shown in the TCC prompt.
+        NSMicrophoneUsageDescription: "STLTH Recorder for macOS записує ваш голос під час зустрічі."
+        # System audio (client's voice). Key confirmed against AudioCap's Info.plist —
+        # see docs/notes/audiocap-findings.md §1. Xcode does not list it in the dropdown.
+        NSAudioCaptureUsageDescription: "STLTH Recorder for macOS записує звук зустрічі (голос клієнта). Аудіо залишається на цьому Mac."
+    entitlements:
+      path: App/STLTHRecorder.entitlements
+      properties:
+        # No app-sandbox on purpose: sessions live at a real path under
+        # ~/Library/Application Support/STLTHRecorder, and we do not ship via App Store.
+        com.apple.security.device.audio-input: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ua.stlth.STLTHRecorder
+        MARKETING_VERSION: "1.2.0"
+        CURRENT_PROJECT_VERSION: "3"
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGN_STYLE: Manual
+        DEVELOPMENT_TEAM: ""
+        ENABLE_HARDENED_RUNTIME: YES
+        SWIFT_VERSION: "5.10"

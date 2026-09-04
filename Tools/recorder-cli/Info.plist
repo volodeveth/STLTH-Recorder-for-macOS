@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>ua.stlth.recorder-cli</string>
+    <key>CFBundleName</key>
+    <string>STLTH Recorder for macOS CLI</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>NSAudioCaptureUsageDescription</key>
+    <string>STLTH Recorder for macOS записує звук зустрічі (голос клієнта). Аудіо залишається на цьому Mac.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>STLTH Recorder for macOS записує ваш голос під час зустрічі.</string>
+</dict>
+</plist>

@@ -1,0 +1,2 @@
+mic.caf      sr=48000 ch=1 frames=479744 peak=0.000000 rms=0.000000
+system.caf   sr=48000 ch=2 frames=479744 peak=0.693665 rms=0.411482

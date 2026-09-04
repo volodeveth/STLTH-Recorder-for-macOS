@@ -1,0 +1,37 @@
+{
+  "appVersion" : "1.0.0",
+  "consent" : {
+    "at" : "2026-08-06T14:05:27.682-07:00",
+    "confirmed" : true
+  },
+  "deviceChanges" : [
+
+  ],
+  "devices" : {
+    "input" : "Немає мікрофона",
+    "output" : "Mac mini Speakers"
+  },
+  "durationMs" : 9995,
+  "osVersion" : "26.6.0",
+  "sessionId" : "E94ADE48-A4BB-486C-BE69-D32731BBA7B2",
+  "startedAt" : "2026-08-06T14:05:27.682-07:00",
+  "status" : "completed",
+  "tracks" : [
+    {
+      "channel" : "mic",
+      "channels" : 1,
+      "file" : "mic.caf",
+      "format" : "caf/lpcm",
+      "sampleRate" : 48000,
+      "speaker" : "advisor"
+    },
+    {
+      "channel" : "system",
+      "channels" : 2,
+      "file" : "system.caf",
+      "format" : "caf/lpcm",
+      "sampleRate" : 48000,
+      "speaker" : "client"
+    }
+  ]
+}

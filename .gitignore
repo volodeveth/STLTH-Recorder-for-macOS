@@ -1,0 +1,12 @@
+.DS_Store
+*.xcodeproj
+build/
+DerivedData/
+.build/
+dist/
+*.pyc
+__pycache__/
+.venv/
+
+# Локальні, поза репозиторієм: інструкції агента
+CLAUDE.md.txt

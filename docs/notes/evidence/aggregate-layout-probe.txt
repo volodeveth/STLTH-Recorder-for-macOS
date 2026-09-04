@@ -1,0 +1,8 @@
+output: Mac mini Speakers [BuiltInSpeakerDevice]
+input:  BlackHole 2ch [BlackHole2ch_UID]
+
+--- варіанти ---
+1. лише tap + output (як AudioCap): ✅ колбеків=187 буфери=2ch peak=0.6937
+2. input + output, main=output: ❌ колбеків=0 буфери=- peak=0.0000
+3. input + output, main=input: ❌ колбеків=0 буфери=- peak=0.0000
+4. лише input + tap (без output): ❌ колбеків=0 буфери=- peak=0.0000
