@@ -1,0 +1,59 @@
+# e2e-transcription on the CI Mac runner — 2026-09-04
+
+Run:      https://github.com/volodeveth/STLTH-Recorder-for-macOS/actions/runs/33904005674
+Runner:   macos-15 (GitHub-hosted, Apple Silicon VM, no Metal GPU), Xcode 16.4
+Commit:   65459ca (e2e harness fix), harness Tools/e2e-transcription/main.swift
+Voice:    say -v Lesya (uk), whisper language uk
+Models:   downloaded through ModelInstaller.httpFetch, digests checked by the installer
+
+Reference sentence spoken by the synthesised voice:
+  Доброго дня. Сьогодні ми обговоримо структуру вашого портфеля та цілі на найближчі три роки.
+
+Numbers below characterise the runner VM, not an advisor's Mac: whisper ran on CPU only.
+
+--- harness output (compiler warnings and the make echo trimmed) ---
+
+==> 1. Models, through the app's own installer
+    ggml-large-v3-q5_0.bin: 200 MB
+    ggml-large-v3-q5_0.bin: 400 MB
+    ggml-large-v3-q5_0.bin: 600 MB
+    ggml-large-v3-q5_0.bin: 800 MB
+    ggml-large-v3-q5_0.bin: 1000 MB
+    download took 119 s
+  ✅ both models present at their pinned size and digest
+  ✅ superseded turbo removed after the replacement verified
+  ✅ whisper-cli found next to this binary: /Users/runner/work/STLTH-Recorder-for-macOS/STLTH-Recorder-for-macOS/build/e2e/whisper-cli
+  ✅ large-v3 is the model Transcriber picks
+  ✅ VAD model found
+==> 2. A spoken session, transcribed with large-v3, audio removal on
+    voice: Lesya, language: uk
+    whisper took 184 s for two tracks
+    | # Транскрипт сесії
+    | **Сесія:** 8690944B-E735-4EE4-99D4-420BF2BD65A9
+    | **Початок:** 2026-09-04T18:08:15.017Z
+    | **Тривалість:** 00:00:10
+    | **Модель:** whisper.cpp `ggml-large-v3-q5_0.bin` — локально, аудіо не залишає цей Mac
+    | > Розділення за спікерами не вгадується: `mic.caf` — це завжди радник,
+    | > `system.caf` — завжди співрозмовник. Атрибуція реплік випливає з того,
+    | > як зроблено запис, а не з моделі діаризації.
+    | ## Радник
+    | `[00:00:00]` Доброго дня! Сьогодні ми обговоримо структуру вашого портфеля та цілі на найближчі три роки.
+    | ## Клієнт
+    | `[00:00:00]` Доброго дня! Сьогодні ми обговоримо структуру вашого портфеля та цілі на найближчі три роки.
+  ✅ speech detected
+  ✅ transcript has at least one timestamped line
+  ✅ mic.caf removed
+  ✅ system.caf removed
+  ✅ session.m4a kept
+  ✅ transcript.md kept
+  ✅ audioRemovedAt recorded in meta.json
+  ✅ session still reads as completed
+==> 3. A silent session, audio removal on
+  ✅ no speech in silence
+  ✅ silent session keeps mic.caf
+  ✅ silent session keeps system.caf
+  ✅ silent session not marked as stripped
+==> 4. Two sessions through SerialTaskQueue
+  ✅ B started only after A finished: ["A start", "A end", "B start", "B end"]
+  ✅ audio kept when the option is off
+✅ end-to-end transcription passed
