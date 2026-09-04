@@ -67,27 +67,33 @@ public enum Transcriber {
         return paths
     }
 
-    /// Ordered by measured accuracy, best first.
+    /// Best first: the model the installer fetches, then what earlier versions left.
     ///
-    /// Measured on a **human voice through a real Zoom call** — 145 words of
-    /// financial talk read aloud (`Tools/wer-live.sh`), not the synthesised sample
-    /// that flatters every model:
+    /// `large-v3-q5_0` is what 1.3.0 installs (see `ModelInstaller.requiredModels`
+    /// for why the full model over turbo). Turbo stays a candidate so a machine that
+    /// has not re-downloaded keeps working; medium is the dev-bench fallback.
+    ///
+    /// The numbers below were measured on a **human voice through a real Zoom call**
+    /// — 145 words of financial talk read aloud (`Tools/wer-live.sh`), not the
+    /// synthesised sample that flatters every model. Large-v3 has no row: it was never
+    /// run on this bench, and a number nobody measured is worse than a blank.
     ///
     /// | модель | розмір | WER | без чисел | година, на канал |
     /// |---|---|---|---|---|
+    /// | `large-v3-q5_0` | 1 031 МБ | не міряно | не міряно | не міряно |
     /// | `large-v3-turbo-q5_0` | 547 МБ | **21.4 %** | **14.4 %** | ~9 хв |
     /// | `medium-q5_0` | 519 МБ | 26.2 % | 19.2 % | ~17 хв |
     /// | `small-q5_1` | 184 МБ | 89.0 % | 92.0 % | ~5 хв |
     ///
-    /// Turbo wins on both axes at once — more accurate *and* twice as fast as medium
-    /// for thirty megabytes more, so there is no trade-off to weigh.
+    /// Turbo beat medium on both axes at once — more accurate *and* twice as fast for
+    /// thirty megabytes more — which is why medium is last.
     ///
     /// Small is deliberately absent. At 89 % it does not transcribe Ukrainian so much
     /// as invent it — 79 fabricated words against 145 spoken — and a fallback that
     /// silently produces fiction is worse than telling the user which model to fetch.
     static var modelCandidates: [String] {
         let home = NSHomeDirectory()
-        let names = ["ggml-large-v3-turbo-q5_0.bin", "ggml-medium-q5_0.bin"]
+        let names = ["ggml-large-v3-q5_0.bin", "ggml-large-v3-turbo-q5_0.bin", "ggml-medium-q5_0.bin"]
         return names.flatMap { name in
             [
                 // Where scripts/setup-transcription.sh puts them.
@@ -123,7 +129,7 @@ public enum Transcriber {
         vadModelCandidates.first { FileManager.default.fileExists(atPath: $0) }
     }
 
-    static let modelSearchHint = "~/dev/models/ggml-large-v3-turbo-q5_0.bin"
+    static let modelSearchHint = "~/dev/models/ggml-large-v3-q5_0.bin"
 
     public static func tool() -> String? {
         toolCandidates.first { FileManager.default.isExecutableFile(atPath: $0) }

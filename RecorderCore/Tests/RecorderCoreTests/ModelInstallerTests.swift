@@ -186,20 +186,115 @@ struct ModelInstallerTests {
         #expect(installer.state == .notInstalled)
     }
 
+    @Test("Deleting the models takes a leftover turbo file with them")
+    @MainActor
+    func removalIncludesSuperseded() throws {
+        let dir = try makeDirectory()
+        let installer = ModelInstaller(directory: dir, fetch: { _, _, _ in })
+        let turbo = dir.appendingPathComponent("ggml-large-v3-turbo-q5_0.bin")
+        try Data("x".utf8).write(to: turbo)
+        try Data("y".utf8).write(to: turbo.appendingPathExtension("part"))
+
+        try installer.removeModels()
+
+        #expect(!FileManager.default.fileExists(atPath: turbo.path))
+        #expect(!FileManager.default.fileExists(atPath: turbo.appendingPathExtension("part").path))
+    }
+
+    // MARK: - Replacing the model
+
+    @Test("The turbo model is removed only after its replacement verified")
+    func supersededGoesAfterSuccess() async throws {
+        let dir = try makeDirectory()
+        let turbo = dir.appendingPathComponent("ggml-large-v3-turbo-q5_0.bin")
+        try Data("стара модель".utf8).write(to: turbo)
+        let payload = Data("нова модель".utf8)
+        let model = fakeModel(payload)
+
+        try await ModelInstaller.downloadAll(into: dir, models: [model],
+                                             fetch: fetch(payload), progress: { _, _ in })
+
+        #expect(FileManager.default.fileExists(atPath: dir.appendingPathComponent(model.name).path))
+        #expect(!FileManager.default.fileExists(atPath: turbo.path))
+    }
+
+    @Test("A failed replacement leaves the turbo model in place")
+    func supersededSurvivesFailure() async throws {
+        // Otherwise a dropped download would leave the user with no working model at
+        // all — the one outcome worse than a stale one.
+        let dir = try makeDirectory()
+        let turbo = dir.appendingPathComponent("ggml-large-v3-turbo-q5_0.bin")
+        try Data("стара модель".utf8).write(to: turbo)
+        let model = fakeModel(Data("нова модель".utf8))
+        let errorPage = Data("<html>502 Bad Gateway</html>".utf8)
+
+        await #expect(throws: ModelInstaller.InstallerError.self) {
+            try await ModelInstaller.downloadAll(into: dir, models: [model],
+                                                 fetch: self.fetch(errorPage), progress: { _, _ in })
+        }
+
+        #expect(FileManager.default.fileExists(atPath: turbo.path))
+        #expect(try Data(contentsOf: turbo) == Data("стара модель".utf8))
+    }
+
+    @Test("A cancelled replacement leaves the turbo model in place")
+    func supersededSurvivesCancellation() async throws {
+        let dir = try makeDirectory()
+        let turbo = dir.appendingPathComponent("ggml-large-v3-turbo-q5_0.bin")
+        try Data("стара модель".utf8).write(to: turbo)
+        let model = fakeModel(Data("нова модель".utf8))
+        let cancelled: ModelInstaller.Fetch = { _, _, _ in throw CancellationError() }
+
+        await #expect(throws: CancellationError.self) {
+            try await ModelInstaller.downloadAll(into: dir, models: [model],
+                                                 fetch: cancelled, progress: { _, _ in })
+        }
+
+        #expect(FileManager.default.fileExists(atPath: turbo.path))
+    }
+
+    @Test("The shipped list names large-v3 first and turbo as superseded")
+    func shippedModelsAreLargeV3() {
+        #expect(ModelInstaller.requiredModels[0].name == "ggml-large-v3-q5_0.bin")
+        #expect(ModelInstaller.requiredModels[0].bytes == 1_081_140_203)
+        #expect(ModelInstaller.requiredModels[0].sha256
+                == "d75795ecff3f83b5faa89d1900604ad8c780abd5739fae406de19f23ecd98ad1")
+        #expect(ModelInstaller.supersededModels == ["ggml-large-v3-turbo-q5_0.bin"])
+        // A superseded model must never also be required, or it would be deleted the
+        // moment it finished downloading.
+        for model in ModelInstaller.requiredModels {
+            #expect(!ModelInstaller.supersededModels.contains(model.name))
+        }
+    }
+
+    @Test("The old model still counts for Transcriber until it is replaced")
+    func turboRemainsACandidate() {
+        // A machine that has not re-downloaded keeps transcribing on turbo; the new
+        // model simply wins when both are present.
+        let dir = ModelInstaller.defaultDirectory
+        let candidates = Transcriber.modelCandidates
+        let new = candidates.firstIndex(of: dir.appendingPathComponent("ggml-large-v3-q5_0.bin").path)
+        let old = candidates.firstIndex(of: dir.appendingPathComponent("ggml-large-v3-turbo-q5_0.bin").path)
+        #expect(new != nil)
+        #expect(old != nil)
+        if let new, let old { #expect(new < old) }
+    }
+
     // MARK: - What the user is told before agreeing
 
     @Test("The advertised download size matches what is actually fetched")
     func sizeMatchesModels() {
         let sum = ModelInstaller.requiredModels.reduce(Int64(0)) { $0 + $1.bytes }
         #expect(ModelInstaller.totalBytes == sum)
-        #expect(sum == 574_926_293)
+        #expect(sum == 1_082_025_301)
 
-        // README, the design note and `ls -lh` all speak in MiB — 547 МБ for the speech
-        // model, 548 for both. `ByteCountFormatter.file` is decimal and would tell the
-        // user 574,9 МБ instead, so the UI must use the binary style or the number the
-        // advisor agrees to stops matching the number the project documents.
+        // README and `ls -lh` speak in binary units — 1 031 МБ for the speech model,
+        // 1,01 ГБ for both. `ByteCountFormatter.file` is decimal and would say 1,08 ГБ,
+        // so the UI must use the binary style or the number the advisor agrees to
+        // stops matching the number the project documents. The decimal separator is
+        // the runner's locale, hence both spellings.
         let shown = ByteCountFormatter.string(fromByteCount: sum, countStyle: .binary)
-        #expect(shown.contains("548"))
+        #expect(shown.contains("1.01") || shown.contains("1,01"))
     }
 
     @Test("Models are looked for where Transcriber already searches")

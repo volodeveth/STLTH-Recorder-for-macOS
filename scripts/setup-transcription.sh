@@ -14,7 +14,8 @@
 set -euo pipefail
 
 MODELS="$HOME/Library/Application Support/STLTHRecorder/Models"
-SPEECH="ggml-large-v3-turbo-q5_0.bin"     # розпізнавання, ~547 МБ
+SPEECH="ggml-large-v3-q5_0.bin"           # розпізнавання, ~1 031 МБ
+SUPERSEDED="ggml-large-v3-turbo-q5_0.bin" # що ставила 1.2.0; прибирається після заміни
 VAD="ggml-silero-v5.1.2.bin"              # VAD, ~864 КБ
 BASE="https://huggingface.co/ggerganov/whisper.cpp/resolve/main"
 VAD_BASE="https://huggingface.co/ggml-org/whisper-vad/resolve/main"
@@ -52,8 +53,15 @@ fetch() {
 }
 
 echo "==> Моделі → $MODELS"
-fetch "$SPEECH" "$BASE/$SPEECH" "547 МБ"
+fetch "$SPEECH" "$BASE/$SPEECH" "1 031 МБ"
 fetch "$VAD" "$VAD_BASE/$VAD" "864 КБ"
+
+# Only now, after both downloads above succeeded: a failed fetch must never leave
+# the machine with no working model at all. Same order the app's installer keeps.
+if [[ -e "$MODELS/$SUPERSEDED" ]]; then
+  rm -f "$MODELS/$SUPERSEDED" "$MODELS/$SUPERSEDED.part"
+  echo "    🧹 $SUPERSEDED прибрано — його замінила $SPEECH"
+fi
 
 echo ""
 if [[ -s "$MODELS/$SPEECH" && -s "$MODELS/$VAD" ]] && command -v whisper-cli >/dev/null; then

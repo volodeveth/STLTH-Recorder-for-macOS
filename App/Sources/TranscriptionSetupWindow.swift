@@ -55,7 +55,7 @@ struct TranscriptionSetupWindow: View {
                 }
             }
 
-            // The VAD model is 864 KB against 547 MB and reads like a rounding error,
+            // The VAD model is 864 KB against 1 031 MB and reads like a rounding error,
             // so it gets a sentence: without it the transcript fills silence with
             // sentences nobody said, and a meeting is mostly silence.
             Text("Обидві потрібні. Без другої моделі розпізнавання вигадує текст у "

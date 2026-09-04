@@ -21,7 +21,7 @@ public final class ModelInstaller: ObservableObject {
     /// One downloadable file, pinned by size *and* digest.
     ///
     /// Pinning matters more than it looks: HuggingFace answers a bad path with an HTML
-    /// error page, and a 3 KB page saved as `ggml-large-v3-turbo-q5_0.bin` fails later,
+    /// error page, and a 3 KB page saved as `ggml-large-v3-q5_0.bin` fails later,
     /// deep inside whisper, as something unrecognisable. The shell script leans on
     /// `curl -f` for this; here the digest does the same job and also catches a
     /// truncated download that `-f` would happily keep.
@@ -70,13 +70,22 @@ public final class ModelInstaller: ObservableObject {
     /// silence — and a meeting is mostly silence — so shipping speech recognition
     /// without it would make the feature worse than absent.
     ///
-    /// Sizes and digests measured 2026-08-10 against the files
-    /// `scripts/setup-transcription.sh` fetches, on which the 8.8 % WER was recorded.
+    /// Sizes and digests: the speech model measured 2026-09-04 by downloading the file
+    /// in full and hashing it (it also matches HuggingFace's LFS `X-Linked-ETag`); the
+    /// VAD model measured 2026-08-10 the same way.
     nonisolated public static let requiredModels: [Model] = [
-        Model(name: "ggml-large-v3-turbo-q5_0.bin",
-              url: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q5_0.bin")!,
-              bytes: 574_041_195,
-              sha256: "394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2",
+        // Full large-v3, not turbo. Turbo is twice as fast because its decoder is
+        // distilled from 32 layers to 4 — and the decoder is what turns tokens into a
+        // sentence that holds together. The Windows build of this product observed
+        // it directly on Ukrainian: turbo produced «Тораз глянемо» where the full
+        // model hears «Та розглянемо», and fragments where it hears words.
+        // Transcription is a background job after the call, so twice the time costs
+        // less than mangled lines. No WER was measured for this model on this bench;
+        // every number in ENGINEERING_NOTES §10 is turbo's.
+        Model(name: "ggml-large-v3-q5_0.bin",
+              url: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-q5_0.bin")!,
+              bytes: 1_081_140_203,
+              sha256: "d75795ecff3f83b5faa89d1900604ad8c780abd5739fae406de19f23ecd98ad1",
               purpose: "розпізнавання мовлення"),
         Model(name: "ggml-silero-v5.1.2.bin",
               url: URL(string: "https://huggingface.co/ggml-org/whisper-vad/resolve/main/ggml-silero-v5.1.2.bin")!,
@@ -84,6 +93,23 @@ public final class ModelInstaller: ObservableObject {
               sha256: "29940d98d42b91fbd05ce489f3ecf7c72f0a42f027e4875919a28fb4c04ea2cf",
               purpose: "виявлення мовлення (VAD)"),
     ]
+
+    /// Models an earlier version installed and this one no longer fetches. Leaving them
+    /// in place means keeping half a gigabyte nobody will open again — but they go
+    /// only once their replacement has downloaded and verified, so a dropped download
+    /// never leaves the user with no working model at all. Until then `Transcriber`
+    /// still lists them as candidates, and a machine that has not re-downloaded keeps
+    /// transcribing on the old file.
+    nonisolated public static let supersededModels = ["ggml-large-v3-turbo-q5_0.bin"]
+
+    nonisolated static func removeSuperseded(in directory: URL) {
+        for name in supersededModels {
+            let file = directory.appendingPathComponent(name)
+            // Busy or unreadable: it simply stays. Not worth failing an install over.
+            try? FileManager.default.removeItem(at: file)
+            try? FileManager.default.removeItem(at: file.appendingPathExtension("part"))
+        }
+    }
 
     /// The directory `Transcriber` already searches first, and the one the shell script
     /// writes to — so a machine set up either way ends up in the same place.
@@ -202,8 +228,9 @@ public final class ModelInstaller: ObservableObject {
         state = isInstalled ? .ready : .notInstalled
     }
 
-    /// Frees the half gigabyte again. Partial downloads go too — leaving them would be
-    /// the one case where "deleted" does not free what Settings said it would.
+    /// Frees the gigabyte again. Partial downloads go too — leaving them would be the
+    /// one case where "deleted" does not free what Settings said it would — and so
+    /// does a model left over from an earlier version, for the same reason.
     public func removeModels() throws {
         cancel()
         for model in Self.requiredModels {
@@ -211,18 +238,22 @@ public final class ModelInstaller: ObservableObject {
             try? FileManager.default.removeItem(at: file)
             try? FileManager.default.removeItem(at: file.appendingPathExtension("part"))
         }
+        Self.removeSuperseded(in: directory)
         state = .notInstalled
     }
 
     // MARK: - Downloading
 
+    /// - Parameter models: `requiredModels` in production; tests pass stand-ins so the
+    ///   ordering around `removeSuperseded` can be checked without a gigabyte.
     nonisolated static func downloadAll(into directory: URL,
-                            fetch: Fetch,
-                            progress: @escaping @Sendable (String, Int64) async -> Void) async throws {
+                                        models: [Model] = requiredModels,
+                                        fetch: Fetch,
+                                        progress: @escaping @Sendable (String, Int64) async -> Void) async throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 
         var completed: Int64 = 0
-        for model in requiredModels {
+        for model in models {
             if isPresent(model, in: directory) {
                 completed += model.bytes
                 continue
@@ -230,6 +261,9 @@ public final class ModelInstaller: ObservableObject {
             try await download(model, into: directory, fetch: fetch, baseline: completed, progress: progress)
             completed += model.bytes
         }
+        // Reached only when every model above is on disk and verified — a throw skips
+        // this on purpose, so a failed replacement never takes the old model with it.
+        removeSuperseded(in: directory)
     }
 
     nonisolated static func download(_ model: Model,
