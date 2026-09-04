@@ -1,0 +1,57 @@
+name: e2e-transcription
+
+# Runs whisper for real on the CI Mac. Everything else in the test suite stubs the
+# model out, which proves the plumbing and nothing about the model file itself —
+# whether whisper-cli v1.9.2 opens ggml-large-v3-q5_0.bin, whether its JSON has the
+# shape the parser expects, whether speech is actually detected and the audio-removal
+# pipeline behaves on a real transcript. This job downloads the pinned models through
+# the app's own installer, synthesises speech with `say`, transcribes it and checks
+# every step. Manual, because it pulls a gigabyte from HuggingFace each time.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    name: Real whisper on macos-15
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: swift --version && xcodebuild -version
+
+      - name: Cache whisper-cli
+        uses: actions/cache@v4
+        with:
+          path: build/whisper
+          key: whisper-cli-${{ runner.os }}-${{ hashFiles('scripts/build-whisper.sh') }}
+
+      # The Ukrainian voice is a download on a stock macOS, so the runner may not
+      # have it; English through the default voice still proves everything but the
+      # language flag. Whatever is used is printed, so the log says which it was.
+      - name: Pick a voice the runner actually has
+        id: voice
+        run: |
+          say -v '?' | head -40
+          if say -v '?' | grep -q '^Lesya'; then
+            echo "voice=Lesya" >> "$GITHUB_OUTPUT"
+            echo "language=uk" >> "$GITHUB_OUTPUT"
+          else
+            echo "voice=" >> "$GITHUB_OUTPUT"
+            echo "language=en" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build and run the harness
+        env:
+          E2E_VOICE: ${{ steps.voice.outputs.voice }}
+          E2E_LANGUAGE: ${{ steps.voice.outputs.language }}
+        run: make e2e-transcription 2>&1 | tee e2e-transcription.log
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-transcription-log
+          path: e2e-transcription.log
+          if-no-files-found: warn

@@ -1,4 +1,4 @@
-.PHONY: gen app build run test typecheck recorder-cli drift-selftest clean
+.PHONY: gen app build run test typecheck recorder-cli drift-selftest e2e-transcription clean
 
 APP_NAME := STLTHRecorder
 SCHEME := STLTHRecorder
@@ -67,3 +67,13 @@ recorder-cli:
 
 clean:
 	rm -rf $(BUILD_DIR) RecorderCore/.build *.xcodeproj
+
+## Real-whisper end-to-end check: downloads the pinned models through the app's own
+## installer, synthesises speech, transcribes it with large-v3 and checks audio removal.
+## Meant for the CI Mac runner (.github/workflows/e2e-transcription.yml); see Tools/e2e-transcription.
+e2e-transcription:
+	./scripts/build-whisper.sh
+	@mkdir -p $(BUILD_DIR)/e2e
+	swiftc -O RecorderCore/Sources/RecorderCore/*.swift Tools/e2e-transcription/main.swift \n	  -o $(BUILD_DIR)/e2e/e2e-transcription \n	  -framework CoreAudio -framework AVFoundation
+	cp build/whisper/whisper-cli $(BUILD_DIR)/e2e/whisper-cli
+	$(BUILD_DIR)/e2e/e2e-transcription
