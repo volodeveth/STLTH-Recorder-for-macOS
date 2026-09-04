@@ -10,6 +10,7 @@ struct STLTHRecorderApp: App {
     @StateObject private var reminder = MeetingReminder()
     @StateObject private var mixdown = MixdownService(store: SessionStore())
     @StateObject private var models = ModelInstaller()
+    @StateObject private var transcription = TranscriptionService(store: SessionStore())
 
     var body: some Scene {
         MenuBarExtra {
@@ -17,7 +18,8 @@ struct STLTHRecorderApp: App {
                         permissions: permissions,
                         reminder: reminder,
                         mixdown: mixdown,
-                        models: models)
+                        models: models,
+                        transcription: transcription)
 
         } label: {
             // The label is built at launch, unlike the menu's content — so this is

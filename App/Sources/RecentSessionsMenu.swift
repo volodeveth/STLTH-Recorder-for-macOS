@@ -10,11 +10,10 @@ struct RecentSessionsMenu: View {
     @ObservedObject var models: ModelInstaller
     @Environment(\.openWindow) private var openWindow
     @ObservedObject var mixdown: MixdownService
+    /// Owns the queue and the "Транскрибується…" state — the menu has no room for a
+    /// progress bar, so the item itself reports it, for automatic runs as well.
+    @ObservedObject var transcription: TranscriptionService
     @State private var sessions: [SessionMeta] = []
-    /// Session currently being transcribed — the menu has no room for a progress bar,
-    /// so the item itself reports the state.
-    @State private var transcribing: UUID?
-    @State private var transcriptionError: String?
 
     private var store: SessionStore { controller.store }
 
@@ -39,6 +38,8 @@ struct RecentSessionsMenu: View {
         // recorded a minute later simply never appeared. Reloading on every state
         // transition covers the case that matters: a recording just finished.
         .onChange(of: controller.state) { _, _ in reload() }
+        // Audio removal rewrites meta.json after the fact; the list has to show it.
+        .onChange(of: transcription.inProgress) { _, _ in reload() }
     }
 
     @ViewBuilder
@@ -47,20 +48,27 @@ struct RecentSessionsMenu: View {
             Text("Зводиться…")
         } else if mixdown.hasMix(for: meta) {
             Button("Прослухати розмову") { NSWorkspace.shared.open(mixdown.mixURL(for: meta)) }
-        } else {
+        } else if transcription.hasAudio(meta) {
             // Sessions recorded before mixdowns existed, or ones whose mix failed.
             Button("Створити зведений файл") { mixdown.mix(meta) }
+        } else {
+            // Not a broken session: the tracks were removed on purpose after
+            // transcription, and there is nothing left to mix from.
+            Text("Аудіо видалено після транскрибації")
         }
     }
 
     @ViewBuilder
     private func transcribeButton(for meta: SessionMeta) -> some View {
-        if transcribing == meta.sessionId {
+        if transcription.isTranscribing(meta) {
             Text("Транскрибується…")
-        } else if hasTranscript(meta) {
+        } else if transcription.hasTranscript(meta) {
             Button("Показати транскрипт") { revealTranscript(meta) }
+        } else if !transcription.hasAudio(meta) {
+            // Offering transcription here would promise what can no longer be done.
+            EmptyView()
         } else if Transcriber.isAvailable {
-            Button("Транскрибувати") { transcribe(meta) }
+            Button("Транскрибувати") { transcription.transcribe(meta) }
         } else if case .downloading(_, let completed, let total) = models.state {
             Text("Завантаження моделей — \(Int(Double(completed) / Double(max(total, 1)) * 100))%")
         } else {
@@ -75,37 +83,8 @@ struct RecentSessionsMenu: View {
         }
     }
 
-    private func hasTranscript(_ meta: SessionMeta) -> Bool {
-        FileManager.default.fileExists(
-            atPath: directory(for: meta).appendingPathComponent("transcript.md").path)
-    }
-
     private func revealTranscript(_ meta: SessionMeta) {
-        NSWorkspace.shared.activateFileViewerSelecting(
-            [directory(for: meta).appendingPathComponent("transcript.md")])
-    }
-
-    private func transcribe(_ meta: SessionMeta) {
-        transcribing = meta.sessionId
-        let directory = directory(for: meta)
-        Task.detached(priority: .utility) {
-            do {
-                let transcript = try Transcriber.transcribe(sessionDir: directory).url
-                await MainActor.run {
-                    transcribing = nil
-                    NSWorkspace.shared.activateFileViewerSelecting([transcript])
-                }
-            } catch {
-                await MainActor.run {
-                    transcribing = nil
-                    transcriptionError = error.localizedDescription
-                    let alert = NSAlert()
-                    alert.messageText = "Не вдалося транскрибувати"
-                    alert.informativeText = error.localizedDescription
-                    alert.runModal()
-                }
-            }
-        }
+        NSWorkspace.shared.activateFileViewerSelecting([transcription.transcriptURL(for: meta)])
     }
 
     private func reload() {

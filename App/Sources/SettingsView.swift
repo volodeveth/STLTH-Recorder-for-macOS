@@ -5,6 +5,8 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject var models: ModelInstaller
     @AppStorage("createMixdown") private var createMixdown = true
+    @AppStorage("autoTranscribe") private var autoTranscribe = true
+    @AppStorage("deleteAudioAfterTranscription") private var deleteAudio = false
     @AppStorage("remindAboutMeetings") private var remindAboutMeetings = true
     @AppStorage("launchAtLogin") private var launchAtLogin = false
     @State private var launchError: String?
@@ -27,7 +29,7 @@ struct SettingsView: View {
                 Toggle("Створювати зведений файл для прослуховування", isOn: $createMixdown)
                 Text("Після кожної зустрічі поруч із доріжками з\u{2019}являється session.m4a — "
                      + "радник ліворуч, клієнт праворуч. Вихідні mic.caf і system.caf лишаються "
-                     + "недоторканими.")
+                     + "недоторканими, якщо не увімкнено видалення після розпізнавання.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
@@ -42,6 +44,36 @@ struct SettingsView: View {
             }
 
             Section("Транскрибація") {
+                Toggle("Розпізнавати мову після кожного запису", isOn: $autoTranscribe)
+                Text("Працює у фоні й повністю на цьому Mac — по одній сесії за раз. "
+                     + "Займає приблизно стільки ж часу, скільки тривала розмова.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if autoTranscribe && !Transcriber.isAvailable {
+                    // The toggle stays available, but without models it does nothing —
+                    // better to say so here than let the user wait for a transcript
+                    // that will not come.
+                    Text("Спершу завантажте моделі — нижче або в меню будь-якої сесії.")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
+
+                Toggle("Видаляти аудіо після розпізнавання", isOn: $deleteAudio)
+                Text("Вихідні mic.caf і system.caf видаляються назавжди; лишаються транскрипт, "
+                     + "зведений файл і meta.json. Година розмови — це ~990 МБ проти ~43 МБ. "
+                     + "Спрацьовує лише тоді, коли в транскрипті є мовлення.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if deleteAudio && !createMixdown {
+                    // Together with the mixdown off this leaves nothing of a session but
+                    // text. A legitimate choice — but one to make with open eyes, not to
+                    // discover a week later.
+                    Text("Зведений файл вимкнено — після видалення доріжок від сесії "
+                         + "лишиться тільки текст.")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
+
                 LabeledContent("Моделі розпізнавання") {
                     switch models.state {
                     case .ready:
@@ -53,6 +85,14 @@ struct SettingsView: View {
                     case .notInstalled, .failed:
                         Text("не встановлені").foregroundStyle(.secondary)
                     }
+                }
+                if models.state == .notInstalled, Transcriber.isAvailable {
+                    // 1.2.0 shipped turbo. It still works, so nothing is broken — but
+                    // the person should know why a download is being asked for.
+                    Text("Знайдено попередню модель (turbo) — розпізнавання працює на ній. "
+                         + "Після завантаження нової стара зітреться сама.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
                 if case .ready = models.state {
                     Button("Видалити моделі") { try? models.removeModels() }

@@ -23,6 +23,7 @@ struct MenuBarView: View {
     @ObservedObject var reminder: MeetingReminder
     @ObservedObject var mixdown: MixdownService
     @ObservedObject var models: ModelInstaller
+    @ObservedObject var transcription: TranscriptionService
     /// A `Window` scene opens only through this — assigning to a `@State` flag
     /// compiles cleanly and does nothing at all, which is how "Почати запис"
     /// silently stopped working.
@@ -52,6 +53,10 @@ struct MenuBarView: View {
                     // in the background so a slow encode can never delay the end of a
                     // recording or make a finished session look unfinished.
                     mixdown.mixAfterRecording(controller.lastCompletedMeta)
+                    // Same rule as the mixdown: derived, in the background, one
+                    // session at a time — a recording that ends while another is
+                    // still being recognised simply joins the queue.
+                    transcription.transcribeAfterRecording(controller.lastCompletedMeta)
                 }
             } else {
                 if let meeting = reminder.pending {
@@ -69,7 +74,8 @@ struct MenuBarView: View {
 
             Divider()
 
-            RecentSessionsMenu(controller: controller, models: models, mixdown: mixdown)
+            RecentSessionsMenu(controller: controller, models: models, mixdown: mixdown,
+                               transcription: transcription)
 
             Divider()
 
