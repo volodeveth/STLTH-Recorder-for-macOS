@@ -90,7 +90,7 @@ struct RecentSessionsMenu: View {
         let directory = directory(for: meta)
         Task.detached(priority: .utility) {
             do {
-                let transcript = try Transcriber.transcribe(sessionDir: directory)
+                let transcript = try Transcriber.transcribe(sessionDir: directory).url
                 await MainActor.run {
                     transcribing = nil
                     NSWorkspace.shared.activateFileViewerSelecting([transcript])

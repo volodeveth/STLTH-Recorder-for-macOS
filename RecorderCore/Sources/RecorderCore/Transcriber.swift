@@ -136,9 +136,25 @@ public enum Transcriber {
     /// Whether the menu item can do anything at all.
     public static var isAvailable: Bool { tool() != nil && model() != nil }
 
+    /// What one run produced — and whether it found anything worth keeping.
+    ///
+    /// `hadSpeech` exists for exactly one caller: the decision to delete the source
+    /// tracks afterwards. A transcript with no lines means recognition found nothing,
+    /// and that is the one moment the audio must stay — so the fact travels with the
+    /// result instead of being re-derived by parsing the markdown back.
+    public struct TranscriptResult: Equatable, Sendable {
+        public let url: URL
+        public let hadSpeech: Bool
+
+        public init(url: URL, hadSpeech: Bool) {
+            self.url = url
+            self.hadSpeech = hadSpeech
+        }
+    }
+
     /// Transcribe both tracks of a session and write `transcript.md` beside them.
     @discardableResult
-    public static func transcribe(sessionDir: URL, language: String = "uk") throws -> URL {
+    public static func transcribe(sessionDir: URL, language: String = "uk") throws -> TranscriptResult {
         guard let tool = tool() else { throw TranscriberError.toolMissing }
         guard let model = model() else { throw TranscriberError.modelMissing }
 
@@ -197,10 +213,16 @@ public enum Transcriber {
             .write(to: target, atomically: true, encoding: .utf8)
 
         logger.info("Transcript written for session at \(sessionDir.lastPathComponent, privacy: .public)")
-        return target
+        return TranscriptResult(url: target, hadSpeech: hasSpeech(sections))
     }
 
     // MARK: - Internals
+
+    /// One recognised line on either track is speech; `[BLANK_AUDIO]`-style markers
+    /// were already dropped by `segments(at:)`, so nothing here has to second-guess them.
+    static func hasSpeech(_ sections: [(title: String, lines: [(Int, String)])]) -> Bool {
+        sections.contains { !$0.lines.isEmpty }
+    }
 
     private static func run(_ launchPath: String,
                             _ arguments: [String],
