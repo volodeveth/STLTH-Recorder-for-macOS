@@ -167,6 +167,46 @@ public final class SessionStore {
         try? meta.write(to: metaURL)
     }
 
+    /// Whether the source tracks may be deleted after a transcription run.
+    ///
+    /// A pure function, because this is the one decision in the product that destroys
+    /// the user's data, and it has to be tested rather than guessed at along the way.
+    ///
+    /// The second condition is not a formality. A transcript with no lines means either
+    /// recognition failed or nobody spoke — and deleting the audio at that moment is
+    /// the worst possible outcome: the recording is gone, and what remains is a file
+    /// that says «мовлення не розпізнано».
+    public static func mayRemoveAudio(enabled: Bool, hadSpeech: Bool) -> Bool {
+        enabled && hadSpeech
+    }
+
+    /// Delete the source tracks, keeping everything derived: the mixdown, the
+    /// transcript and `meta.json`.
+    ///
+    /// Best effort, like `noteMix`: a track that cannot be removed simply stays for the
+    /// next attempt, and the fact of removal is recorded only when something was
+    /// actually freed — an empty directory is not "audio was deleted".
+    /// - Returns: bytes freed.
+    @discardableResult
+    public func removeAudio(at sessionDir: URL) -> Int64 {
+        var freed: Int64 = 0
+        for name in ["mic.caf", "system.caf"] {
+            let url = sessionDir.appendingPathComponent(name)
+            guard let attributes = try? fileManager.attributesOfItem(atPath: url.path),
+                  let size = attributes[.size] as? Int64,
+                  (try? fileManager.removeItem(at: url)) != nil else { continue }
+            freed += size
+        }
+        if freed > 0 {
+            let metaURL = sessionDir.appendingPathComponent("meta.json")
+            if var meta = try? SessionMeta.load(from: metaURL) {
+                meta.audioRemovedAt = Date()
+                try? meta.write(to: metaURL)
+            }
+        }
+        return freed
+    }
+
     /// Duration of a session directory, taken from the *shorter* of the two tracks —
     /// the point past which we no longer have both channels.
     private static func durationMs(ofAudioIn dir: URL) -> Int {

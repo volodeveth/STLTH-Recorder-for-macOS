@@ -131,6 +131,13 @@ public struct SessionMeta: Codable, Equatable, Sendable {
     /// it, and the analytics pipeline reads `meta.json` rather than listing the
     /// directory. The two source tracks remain the record; this is a convenience.
     public var mixFile: String?
+    /// When the source tracks were deleted after transcription, if they were.
+    ///
+    /// Optional for the same reason as `mixFile`: sessions recorded before the option
+    /// existed decode without it. Set only when something was actually freed, so a
+    /// session without audio is never mistaken for a damaged one — the difference
+    /// between "removed on purpose" and "vanished" is exactly what this records.
+    public var audioRemovedAt: Date?
 
     public init(sessionId: UUID,
                 startedAt: Date,
@@ -143,7 +150,8 @@ public struct SessionMeta: Codable, Equatable, Sendable {
                 appVersion: String,
                 osVersion: String,
                 captureMode: CaptureMode? = nil,
-                mixFile: String? = nil) {
+                mixFile: String? = nil,
+                audioRemovedAt: Date? = nil) {
         self.sessionId = sessionId
         self.startedAt = startedAt
         self.durationMs = durationMs
@@ -156,6 +164,7 @@ public struct SessionMeta: Codable, Equatable, Sendable {
         self.osVersion = osVersion
         self.captureMode = captureMode
         self.mixFile = mixFile
+        self.audioRemovedAt = audioRemovedAt
     }
 }
 
