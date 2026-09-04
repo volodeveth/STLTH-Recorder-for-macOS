@@ -74,6 +74,8 @@ clean:
 e2e-transcription:
 	./scripts/build-whisper.sh
 	@mkdir -p $(BUILD_DIR)/e2e
-	swiftc -O RecorderCore/Sources/RecorderCore/*.swift Tools/e2e-transcription/main.swift \n	  -o $(BUILD_DIR)/e2e/e2e-transcription \n	  -framework CoreAudio -framework AVFoundation
+	swiftc -O RecorderCore/Sources/RecorderCore/*.swift Tools/e2e-transcription/main.swift \
+	  -o $(BUILD_DIR)/e2e/e2e-transcription \
+	  -framework CoreAudio -framework AVFoundation
 	cp build/whisper/whisper-cli $(BUILD_DIR)/e2e/whisper-cli
 	$(BUILD_DIR)/e2e/e2e-transcription

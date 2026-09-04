@@ -43,11 +43,19 @@ jobs:
             echo "language=en" >> "$GITHUB_OUTPUT"
           fi
 
+      # `shell: bash` matters: it is what turns on pipefail. With the default shell
+      # the exit code of this step is tee's, and a harness that failed to link once
+      # reported success — exactly the outcome this job exists to rule out.
       - name: Build and run the harness
+        shell: bash
         env:
           E2E_VOICE: ${{ steps.voice.outputs.voice }}
           E2E_LANGUAGE: ${{ steps.voice.outputs.language }}
         run: make e2e-transcription 2>&1 | tee e2e-transcription.log
+
+      - name: The harness reached its last line
+        shell: bash
+        run: grep -q "end-to-end transcription passed" e2e-transcription.log
 
       - uses: actions/upload-artifact@v4
         if: always()

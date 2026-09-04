@@ -172,14 +172,18 @@ let a = try makeSession(from: aiff)
 let b = try makeSession(from: aiff)
 let queue = SerialTaskQueue()
 let stamps = Stamps()
-let first = await queue.enqueue {
+// Top-level constants in main.swift are main-actor isolated; the jobs run elsewhere,
+// so they take copies through capture lists rather than reaching back for them.
+let first = await queue.enqueue { [store, stamps, dir = a.dir, language] in
     await stamps.add("A start")
-    _ = try TranscriptionPipeline.run(sessionDir: a.dir, store: store, deleteAudio: { false }, transcribe: transcribe)
+    _ = try TranscriptionPipeline.run(sessionDir: dir, store: store, deleteAudio: { false },
+                                      transcribe: { try Transcriber.transcribe(sessionDir: $0, language: language) })
     await stamps.add("A end")
 }
-let second = await queue.enqueue {
+let second = await queue.enqueue { [store, stamps, dir = b.dir, language] in
     await stamps.add("B start")
-    _ = try TranscriptionPipeline.run(sessionDir: b.dir, store: store, deleteAudio: { false }, transcribe: transcribe)
+    _ = try TranscriptionPipeline.run(sessionDir: dir, store: store, deleteAudio: { false },
+                                      transcribe: { try Transcriber.transcribe(sessionDir: $0, language: language) })
     await stamps.add("B end")
 }
 try await first.value
